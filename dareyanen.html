@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>誰やねん</title>
+<!-- Body font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;800&display=swap" rel="stylesheet">
+<!-- Title font (distinct) -->
+<link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --page-bg:#ffffff; /* 全体背景：白 */
+    --panel-bg:#ffffff;
+    --border:#e5e7eb;
+    --chip-bg:#f8fafc;
+    --chip-bd:#cbd5e1;
+    --gap:16px;
+    /* チームカラー（pill色と淡色背景用） */
+    --EARTH-JETS:#065f46;           /* 深緑 */
+    --赤坂ドリブンズ:#a3e635;       /* 黄緑 */
+    --EX風林火山:#8B5E3C;           /* 茶色 */
+    --KADOKAWAサクラナイツ:#f472b6; /* ピンク */
+    --KONAMI麻雀格闘倶楽部:#ef4444;  /* 赤 */
+    --渋谷ABEMAS:#9ca3af;            /* 灰色 */
+    --セガサミーフェニックス:#fb923c; /* オレンジ */
+    --TEAM-RAIDEN-雷電:#facc15;       /* 黄色 */
+    --BEAST-X:#1e3a8a;               /* 紺色 */
+    --U-NEXT-Pirates:#60a5fa;        /* 空色 */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Noto Sans JP',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--page-bg);color:#111}
+  .wrap{max-width:1200px;margin:20px auto;padding:0 16px}
+  .title{
+    font-family:'Yusei Magic', 'Noto Sans JP', system-ui, sans-serif; /* タイトルだけ別フォント */
+    font-weight:400;
+    font-size:44px;
+    letter-spacing:.02em;
+    margin:0 0 16px;
+    text-align:center; /* 中央寄せ */
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr; /* 左 / 右 */
+    gap:var(--gap);
+    align-items:start;
+  }
+  .panel{
+    background:var(--panel-bg);
+    color:#111;
+    border:2px solid var(--border);
+    border-radius:14px;
+    min-height:380px;
+    padding:12px;
+  }
+  .panel h2{margin:4px 0 12px;font-size:16px;font-weight:800;color:#111}
+  .group{
+    border-radius:12px;
+    padding:10px;
+    margin-bottom:12px;
+  }
+  /* チーム見出し（左右パネル内） */
+  .team-pill{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:14px;
+    line-height:1;
+  }
+  .list{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 14px;
+    border-radius:999px;
+    border:2px solid var(--chip-bd);
+    background:var(--chip-bg);
+    font-size:16px; /* 人名を大きく */
+    font-weight:600;
+    color:#111;
+    user-select:none;
+    cursor:pointer;
+  }
+  .empty{font-size:13px;color:#64748b}
+
+  /* 下段のコントロール（左パネル真下の位置に見えるよう左寄せ） */
+  .controls{
+    margin:18px 0 0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:flex-start; /* 左寄せ */
+  }
+  .row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .label-reset{
+    font-size:12px;
+    font-weight:700;
+    color:#111;
+    padding:6px 10px;
+    border-radius:999px;
+    border:2px solid #111;
+    background:#fff;
+    cursor:pointer;
+  }
+  /* 下段のチームボタンも左右と同じ pill デザインに統一 */
+  .tbtn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    padding:0;
+    margin:0;
+    background:transparent;
+  }
+  .tbtn .team-pill{ transition:filter .1s, transform .02s; }
+  .tbtn:active .team-pill{ transform:scale(.98); }
+  .tbtn.active .team-pill{ outline:3px solid rgba(0,0,0,.15); }
+  /* タグボタン */
+  .tagbtn{
+    appearance:none;
+    border:2px solid #6b7280;
+    background:#fff;
+    color:#111;
+    padding:8px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .tagbtn.active{
+    background:#111;
+    color:#fff;
+  }
+
+  @media (max-width:900px){
+    .grid{ grid-template-columns:1fr; }
+    .title{ font-size:36px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="title">誰やねん</h1>
+
+    <div class="grid">
+      <!-- 左：表示領域（初期は空） -->
+      <section class="panel">
+        <h2>・お前やねん</h2>
+        <div id="left"></div>
+        <div id="leftEmpty" class="empty">左側にはまだ何も表示されていません</div>
+      </section>
+
+      <!-- 右：選択済（初期は空） -->
+      <section class="panel">
+        <h2>・お前じゃないねん</h2>
+        <div id="right"></div>
+        <div id="rightEmpty" class="empty">右側にはまだ何もありません</div>
+      </section>
+    </div>
+
+    <!-- 左側の真下に見えるよう左寄せで配置 -->
+    <div class="controls">
+      <!-- 段0：すべてをリセット（独立） -->
+      <div class="row">
+        <button id="resetAll" class="label-reset">すべてをリセット</button>
+      </div>
+      <!-- 段1：チームリセット/全選択（独立行） -->
+      <div class="row">
+        <button id="resetTeams" class="label-reset">チームをリセット</button>
+        <button id="selectAllTeams" class="label-reset">全てのチームを選択</button>
+      </div>
+      <!-- 段2：チームボタン（独立行） -->
+      <div class="row" id="teamsRow"></div>
+      <!-- 段3：タグをリセット + 男女タグ（独立行） -->
+      <div class="row">
+        <button id="resetTags" class="label-reset">タグをリセット</button>
+        <button class="tagbtn" data-tag="男">男</button>
+        <button class="tagbtn" data-tag="女">女</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ------------------ データ ------------------
+const DATA = [
+  // EARTH JETS（深緑）
+  { id:"ishii", label:"石井一馬", team:"EARTH JETS", gender:"男" },
+  { id:"miura", label:"三浦智博", team:"EARTH JETS", gender:"男" },
+  { id:"hiro",  label:"HIRO柴田", team:"EARTH JETS", gender:"男" },
+  { id:"aikawa",label:"逢川恵夢", team:"EARTH JETS", gender:"女" },
+
+  // 赤坂ドリブンズ（黄緑）
+  { id:"sonoda",  label:"園田賢",     team:"赤坂ドリブンズ", gender:"男" },
+  { id:"suzuki_ta",label:"鈴木たろう", team:"赤坂ドリブンズ", gender:"男" },
+  { id:"watanabe", label:"渡辺太",     team:"赤坂ドリブンズ", gender:"男" },
+  { id:"asami",    label:"浅見真紀",   team:"赤坂ドリブンズ", gender:"女" },
+
+  // EX風林火山（茶色）
+  { id:"katsumata", label:"勝又健志",   team:"EX風林火山", gender:"男" },
+  { id:"nagai",     label:"永井孝典",   team:"EX風林火山", gender:"男" },
+  { id:"uchikawa",  label:"内川幸太郎", team:"EX風林火山", gender:"男" },
+  { id:"nikaido_a", label:"二階堂亜樹", team:"EX風林火山", gender:"女" },
+
+  // KADOKAWAサクラナイツ（ピンク）
+  { id:"hori",    label:"堀慎吾",   team:"KADOKAWAサクラナイツ", gender:"男" },
+  { id:"shibukawa",label:"渋川難波", team:"KADOKAWAサクラナイツ", gender:"男" },
+  { id:"akutsu",  label:"阿久津翔太", team:"KADOKAWAサクラナイツ", gender:"男" },
+  { id:"okada_2", label:"岡田紗佳", team:"KADOKAWAサクラナイツ", gender:"女" },
+
+  // KONAMI麻雀格闘倶楽部（赤）
+  { id:"sasaki_h",  label:"佐々木寿人", team:"KONAMI麻雀格闘倶楽部", gender:"男" },
+  { id:"takizawa",  label:"滝沢和典",   team:"KONAMI麻雀格闘倶楽部", gender:"男" },
+  { id:"takamiya",  label:"高宮まり",   team:"KONAMI麻雀格闘倶楽部", gender:"女" },
+  { id:"date_arisa",label:"伊達朱里紗", team:"KONAMI麻雀格闘倶楽部", gender:"女" },
+
+  // 渋谷ABEMAS（灰色）
+  { id:"oi",     label:"多井隆晴",   team:"渋谷ABEMAS", gender:"男" },
+  { id:"shiratori",label:"白鳥翔",   team:"渋谷ABEMAS", gender:"男" },
+  { id:"matsumoto",label:"松本吉弘", team:"渋谷ABEMAS", gender:"男" },
+  { id:"hyuga",  label:"日向藍子",   team:"渋谷ABEMAS", gender:"女" },
+
+  // セガサミーフェニックス（オレンジ）
+  { id:"daigo",       label:"醍醐大",   team:"セガサミーフェニックス", gender:"男" },
+  { id:"takeuchi",    label:"竹内元太", team:"セガサミーフェニックス", gender:"男" },
+  { id:"asai",        label:"浅井堂岐", team:"セガサミーフェニックス", gender:"男" },
+  { id:"chinamori_2", label:"茅森早香", team:"セガサミーフェニックス", gender:"女" },
+
+  // TEAM RAIDEN/雷電（黄色）
+  { id:"hagiwara", label:"萩原聖人",   team:"TEAM RAIDEN/雷電", gender:"男" },
+  { id:"setokuma", label:"瀬戸熊直樹", team:"TEAM RAIDEN/雷電", gender:"男" },
+  { id:"honda",    label:"本田朋広",   team:"TEAM RAIDEN/雷電", gender:"男" },
+  { id:"kurosawa", label:"黒沢咲",     team:"TEAM RAIDEN/雷電", gender:"女" },
+
+  // BEAST X（紺色）
+  { id:"suzuki_d", label:"鈴木大介", team:"BEAST X", gender:"男" },
+  { id:"shimoishi",label:"下石戟",   team:"BEAST X", gender:"男" },
+  { id:"tojyo",    label:"東城りお", team:"BEAST X", gender:"女" },
+  { id:"nakata",   label:"中田花奈", team:"BEAST X", gender:"女" },
+
+  // U-NEXT Pirates（空色）
+  { id:"kobayashi_t", label:"小林剛",   team:"U-NEXT Pirates", gender:"男" },
+  { id:"suzuki_y",    label:"鈴木優",   team:"U-NEXT Pirates", gender:"男" },
+  { id:"nakabayashi", label:"仲林圭",   team:"U-NEXT Pirates", gender:"男" },
+  { id:"mizuhara_2",  label:"瑞原明奈", team:"U-NEXT Pirates", gender:"女" },
+];
+
+// チーム順序（表示・グルーピング順を固定）
+const teams = [
+  "EARTH JETS",
+  "赤坂ドリブンズ",
+  "EX風林火山",
+  "KADOKAWAサクラナイツ",
+  "KONAMI麻雀格闘倶楽部",
+  "渋谷ABEMAS",
+  "セガサミーフェニックス",
+  "TEAM RAIDEN/雷電",
+  "BEAST X",
+  "U-NEXT Pirates"
+];
+
+// CSS 変数名用のキー
+function teamKey(name){ return name.replaceAll('/','-').replaceAll(' ','-'); }
+
+// ------------------ 状態 ------------------
+const leftTeams = new Set();     // 左に表示するチーム（トグル）
+const manualRight = new Set();   // 個別で右へ送ったID
+// タグは「一括初期移動」用途のみ。固定強制はしない
+const activeTagsUI = new Set();  // UIのON/OFF状態
+
+// ------------------ DOM 参照 ------------------
+const leftRoot = document.getElementById('left');
+const rightRoot = document.getElementById('right');
+const leftEmpty = document.getElementById('leftEmpty');
+const rightEmpty = document.getElementById('rightEmpty');
+
+// ------------------ レンダリング ------------------
+function groupByTeam(items){
+  const map = new Map();
+  teams.forEach(t=>map.set(t, []));
+  items.forEach(it=>{
+    if (!map.has(it.team)) map.set(it.team, []);
+    map.get(it.team).push(it);
+  });
+  return map;
+}
+
+function getCssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// 文字色のコントラストを簡易判定（明度から白/濃紺を選択）
+function getContrastColor(hexOrRgb){
+  let r,g,b;
+  if (hexOrRgb.startsWith('#')){
+    const h = hexOrRgb.replace('#','').trim();
+    if (h.length===6){
+      r = parseInt(h.slice(0,2),16);
+      g = parseInt(h.slice(2,4),16);
+      b = parseInt(h.slice(4,6),16);
+    }
+  } else if (hexOrRgb.startsWith('rgb')){
+    const m = hexOrRgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (m){ r=+m[1]; g=+m[2]; b=+m[3]; }
+  }
+  if (r==null){ return '#fff'; }
+  const yiq = (r*299 + g*587 + b*114)/1000;
+  return yiq >= 150 ? '#0f172a' : '#ffffff';
+}
+
+function renderPanel(root, items){
+  root.innerHTML = '';
+  const map = groupByTeam(items);
+  for (const [team, arr] of map.entries()){
+    if (arr.length === 0) continue;
+    const key = teamKey(team);
+    const baseColor = getCssVar(`--${key}`) || '#111827';
+
+    const g = document.createElement('div');
+    g.className = 'group';
+    // 淡色背景
+    g.style.background = `color-mix(in hsl, ${baseColor} 20%, white)`;
+
+    const pill = document.createElement('span');
+    pill.className = 'team-pill';
+    pill.textContent = team;
+    pill.style.background = baseColor;
+    pill.style.color = getContrastColor(baseColor);
+
+    const headWrap = document.createElement('div');
+    headWrap.appendChild(pill);
+
+    const list = document.createElement('div');
+    list.className = 'list';
+    arr.forEach(p=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = p.label;
+      chip.title = `${p.label}（${p.team}／${p.gender}）\nクリックで左右に移動`;
+      chip.addEventListener('click', ()=>{
+        // クリックで手動トグル
+        if (manualRight.has(p.id)) manualRight.delete(p.id); else manualRight.add(p.id);
+        render();
+      });
+      list.appendChild(chip);
+    });
+    g.appendChild(headWrap);
+    g.appendChild(list);
+    root.appendChild(g);
+  }
+}
+
+function isRight(p){
+  // 右へ送る条件：手動で右送りしたかどうかのみ
+  return manualRight.has(p.id);
+}
+
+function render(){
+  const leftItems = DATA.filter(p => leftTeams.has(p.team) && !isRight(p));
+  const rightItems = DATA.filter(p => isRight(p));
+
+  renderPanel(leftRoot, leftItems);
+  renderPanel(rightRoot, rightItems);
+
+  leftEmpty.style.display  = leftItems.length  ? 'none' : 'block';
+  rightEmpty.style.display = rightItems.length ? 'none' : 'block';
+}
+
+// ------------------ コントロール組み立て ------------------
+// 下段のチームボタン（pill）
+const teamsRow = document.getElementById('teamsRow');
+const teamButtons = {};
+teams.forEach(team => {
+  const key = teamKey(team);
+  const btn = document.createElement('button');
+  btn.className = 'tbtn';
+  btn.dataset.team = team;
+
+  const pill = document.createElement('span');
+  pill.className = 'team-pill';
+  pill.textContent = team;
+  const baseColor = getCssVar(`--${key}`) || '#111827';
+  pill.style.background = baseColor;
+  pill.style.color = getContrastColor(baseColor);
+
+  btn.appendChild(pill);
+  btn.addEventListener('click', ()=>{
+    if (leftTeams.has(team)) {
+      leftTeams.delete(team);
+      btn.classList.remove('active');
+    } else {
+      leftTeams.add(team);
+      btn.classList.add('active');
+    }
+    render();
+  });
+  teamButtons[team] = btn;
+  teamsRow.appendChild(btn);
+});
+
+// ------------------ イベント ------------------
+// すべてをリセット
+document.getElementById('resetAll').addEventListener('click', ()=>{
+  leftTeams.clear();
+  manualRight.clear();
+  activeTagsUI.clear();
+  Object.values(teamButtons).forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tagbtn').forEach(b=>b.classList.remove('active'));
+  render();
+});
+
+// チームをリセット（左の表示を全解除）
+document.getElementById('resetTeams').addEventListener('click', ()=>{
+  leftTeams.clear();
+  Object.values(teamButtons).forEach(b=>b.classList.remove('active'));
+  render();
+});
+
+// 全てのチームを選択（左に全表示）
+document.getElementById('selectAllTeams').addEventListener('click', ()=>{
+  teams.forEach(t => leftTeams.add(t));
+  Object.values(teamButtons).forEach(b=>b.classList.add('active'));
+  render();
+});
+
+// タグボタン：ONのとき、現在「左に表示されている人」のうち該当性別だけ右へ一括移動
+// OFF時は何も起きない（固定ではなく手動優先のため）
+document.querySelectorAll('.tagbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const tag = btn.dataset.tag; // "男" or "女"
+    if (activeTagsUI.has(tag)){
+      activeTagsUI.delete(tag);
+      btn.classList.remove('active');
+      // OFF時の自動移動は無し
+    } else {
+      activeTagsUI.add(tag);
+      btn.classList.add('active');
+      // 今まさに左に表示されている人を取得
+      const currentLeft = DATA.filter(p => leftTeams.has(p.team) && !isRight(p));
+      currentLeft.filter(p => p.gender === tag).forEach(p => manualRight.add(p.id));
+    }
+    render();
+  });
+});
+
+// タグをリセット（UIだけ解除。配置は維持）
+document.getElementById('resetTags').addEventListener('click', ()=>{
+  activeTagsUI.clear();
+  document.querySelectorAll('.tagbtn').forEach(b=>b.classList.remove('active'));
+  render();
+});
+
+// 初期レンダリング：左右とも空
+render();
+</script>
+</body>
+</html>

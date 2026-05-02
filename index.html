@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>かんたんベルトスクロールアクション</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-wrapper">
+      <h1>かんたんベルトスクロールアクション（1ステージ）</h1>
+
+      <!-- HPや状態表示 -->
+      <div class="hud">
+        <p>HP: <span id="hp">5</span></p>
+        <p id="status">敵をたおそう！</p>
+      </div>
+
+      <!-- ゲーム画面 -->
+      <div id="game" class="game-area">
+        <div id="player" class="player"></div>
+      </div>
+
+      <p class="help">操作: ← → で移動 / スペースでパンチ</p>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>
